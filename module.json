@@ -26,10 +26,7 @@
     ]
   },
   "esmodules": [
-    "scripts/module.mjs"
-  ],
-  "styles": [
-    "styles/module.css"
+    "dist/main.js"
   ],
   "languages": [
     {

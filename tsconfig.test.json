@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["fvtt-types", "node"]
+  },
+  "include": ["tests/**/*", "src/**/*"]
+}

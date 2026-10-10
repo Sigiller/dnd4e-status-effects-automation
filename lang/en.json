@@ -1,4 +1,14 @@
 {
-  "DSEA.DurationDefault": "Default (Save Ends for conditions, none for states)",
-  "DSEA.DurationNone": "No Duration"
+  "DSEA.DurationDefault": "Default (per-status default from module settings)",
+  "DSEA.DurationNone": "No Duration",
+  "DSEA.PaletteResize": "Drag to resize ({min}–{max} per row)",
+  "DSEA.Settings.StatusOptions.Name": "Status Effects",
+  "DSEA.Settings.StatusOptions.Label": "Configure Statuses",
+  "DSEA.Settings.StatusOptions.Hint": "Choose which statuses appear in the Token HUD palette and the duration the \"Default\" choice applies to each. Hidden statuses stay visible on tokens that already have them, so they can be removed.",
+  "DSEA.Settings.Status": "Status",
+  "DSEA.Settings.ShowInHud": "Show in HUD",
+  "DSEA.Settings.DefaultDuration": "Default duration",
+  "DSEA.Settings.Locked": "This status never has a duration",
+  "DSEA.Settings.Reset": "Reset to Defaults",
+  "DSEA.Settings.Save": "Save Changes"
 }

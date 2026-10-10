@@ -1,4 +1,5 @@
-# Foundry-style release: push tag vX.Y.Z → GitHub Release with module.zip (folder = module id) + module.json
+# Foundry-style release: push tag vX.Y.Z → check + build (dist/main.js) → GitHub Release with module.zip
+# (folder = module id) + module.json
 # (download URL points at this tag's release asset; manifest URL points at the latest release).
 
 name: Release
@@ -20,6 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
 
       - name: Verify tag matches module.json version
         run: |
@@ -36,8 +38,8 @@ jobs:
             exit 1
           fi
 
-      - name: Run unit tests
-        run: npm test
+      - name: Check and build module
+        run: npm ci && npm run check
 
       - name: Stage module folder and inject manifest URLs
         env:
@@ -54,11 +56,18 @@ jobs:
             --exclude='.github' \
             --exclude='.gitignore' \
             --exclude='staging' \
-            --exclude='dist' \
+            --exclude='dist/module.zip' \
+            --exclude='dist/module.json' \
+            --exclude='src' \
             --exclude='tests' \
+            --exclude='docs' \
             --exclude='node_modules' \
             --exclude='package.json' \
             --exclude='package-lock.json' \
+            --exclude='vite.config.ts' \
+            --exclude='tsconfig.json' \
+            --exclude='tsconfig.test.json' \
+            --exclude='eslint.config.js' \
             ./ "staging/${MODULE_ID}/"
           jq --arg manifest "${LATEST_MANIFEST}" --arg download "${BASE}/module.zip" \
             '. + {manifest: $manifest, download: $download}' module.json \

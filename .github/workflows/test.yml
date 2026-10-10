@@ -3,17 +3,7 @@ name: Test
 on:
   push:
     branches: [main]
-    paths:
-      - "**.js"
-      - "**.mjs"
-      - "**.json"
-      - ".github/workflows/test.yml"
   pull_request:
-    paths:
-      - "**.js"
-      - "**.mjs"
-      - "**.json"
-      - ".github/workflows/test.yml"
 
 jobs:
   test:
@@ -24,6 +14,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
 
-      - name: Run unit tests
-        run: npm test
+      - run: npm ci
+
+      - name: Lint, typecheck, test and build
+        run: npm run check
