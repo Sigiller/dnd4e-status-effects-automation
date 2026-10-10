@@ -1,0 +1,42 @@
+{
+  "id": "dnd4e-status-effects-automation",
+  "title": "D&D 4e Status Effects Automation",
+  "description": "Applies dnd4e effect automation (durations, attack/defence modifiers, ongoing damage, regeneration) to statuses assigned from the Token HUD.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Sigiller",
+      "url": "https://github.com/Sigiller"
+    }
+  ],
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14.367",
+    "maximum": "14"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd4e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "0.9.2"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/module.mjs"
+  ],
+  "styles": [
+    "styles/module.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "url": "https://github.com/Sigiller/dnd4e-status-effects-automation"
+}

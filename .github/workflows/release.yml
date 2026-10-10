@@ -1,0 +1,76 @@
+# Foundry-style release: push tag vX.Y.Z → GitHub Release with module.zip (folder = module id) + module.json
+# (download URL points at this tag's release asset; manifest URL points at the latest release).
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Verify tag matches module.json version
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          case "$TAG" in v*.*.*) ;; *)
+            echo "::error::Tag must look like v1.2.3, got: $TAG"
+            exit 1
+          ;; esac
+          TAG_VER="${TAG#v}"
+          MVER=$(jq -r .version module.json)
+          if [ "$TAG_VER" != "$MVER" ]; then
+            echo "::error::Tag $TAG implies version $TAG_VER but module.json has $MVER — bump module.json (and package.json) before tagging."
+            exit 1
+          fi
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Stage module folder and inject manifest URLs
+        env:
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          MODULE_ID=$(jq -r .id module.json)
+          BASE="https://github.com/${REPO}/releases/download/${TAG}"
+          LATEST_MANIFEST="https://github.com/${REPO}/releases/latest/download/module.json"
+          mkdir -p "staging/${MODULE_ID}"
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.gitignore' \
+            --exclude='staging' \
+            --exclude='dist' \
+            --exclude='tests' \
+            --exclude='node_modules' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            ./ "staging/${MODULE_ID}/"
+          jq --arg manifest "${LATEST_MANIFEST}" --arg download "${BASE}/module.zip" \
+            '. + {manifest: $manifest, download: $download}' module.json \
+            > "staging/${MODULE_ID}/module.json"
+          mkdir -p dist
+          cp "staging/${MODULE_ID}/module.json" dist/module.json
+          (cd staging && zip -rq ../dist/module.zip "$MODULE_ID")
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/module.zip
+            dist/module.json
+          generate_release_notes: true

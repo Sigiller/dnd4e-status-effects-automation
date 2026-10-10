@@ -1,0 +1,51 @@
+/* Duration picker at the top of the Token HUD "Assign Status Effects" palette. */
+#token-hud .status-effects .dsea-durations {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(var(--effect-columns), var(--effect-size));
+  gap: var(--effect-gap);
+  position: sticky;
+  top: calc(-1 * var(--effect-gap));
+  z-index: 1;
+  padding-bottom: var(--effect-gap);
+  margin-bottom: var(--effect-gap);
+  border-bottom: 1px solid var(--control-border-color);
+  background: var(--control-bg-color);
+}
+
+#token-hud .status-effects .dsea-duration {
+  position: relative;
+  width: var(--effect-size);
+  height: var(--effect-size);
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: none;
+  color: var(--control-icon-color);
+  font-size: var(--font-size-14);
+  opacity: 0.5;
+  cursor: var(--cursor-pointer);
+}
+
+#token-hud .status-effects .dsea-duration:hover {
+  opacity: 0.8;
+  color: var(--control-hover-icon-color);
+}
+
+#token-hud .status-effects .dsea-duration.active {
+  opacity: 1;
+  color: var(--control-active-icon-color);
+  border-color: var(--control-active-border-color);
+}
+
+#token-hud .status-effects .dsea-duration .dsea-badge {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  font-size: 8px;
+}

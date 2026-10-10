@@ -1,0 +1,10 @@
+{
+	"name": "dnd4e-status-effects-automation",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"description": "Mirrors the semver from module.json for tooling; Foundry loads module.json only.",
+	"scripts": {
+		"test": "node --test tests/"
+	}
+}
