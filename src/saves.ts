@@ -51,29 +51,27 @@ export function rollsSavesAutomatically(actorType: string): boolean {
   return !isPlayerCharacterType(actorType);
 }
 
-/** Find an embedded ActiveEffect by id, including effects on unlinked token actors the registry may not track. */
-function findActorEffect(effectId: string, hintActor?: Actor.Implementation): ActiveEffect.Implementation | null {
+/**
+ * Find the effect a save was rolled against. The rolling actor (known when this client rolled) identifies it
+ * directly. Otherwise only the effect id is known: look in the registry (which covers world actors, combatants
+ * and materialized tokens), then the viewed scene's unlinked tokens. Unlinked tokens of one base actor can share
+ * inherited effect ids, so an id matching more than one effect is ambiguous and nothing is returned.
+ */
+export function findActorEffect(effectId: string, hintActor?: Actor.Implementation): ActiveEffect.Implementation | null {
   const hinted = hintActor?.effects.get(effectId);
   if (hinted) return hinted;
+  const matches = new Set<ActiveEffect.Implementation>();
   for (const effect of effectRegistry()) {
-    if (effect.id === effectId) return effect;
+    if (effect.id === effectId) matches.add(effect);
   }
-  for (const actor of game.actors ?? []) {
-    const effect = actor.effects.get(effectId);
-    if (effect) return effect;
-  }
-  for (const combat of game.combats ?? []) {
-    for (const combatant of combat.combatants) {
-      const effect = combatant.actor?.effects.get(effectId);
-      if (effect) return effect;
+  if (!matches.size) {
+    for (const token of canvas?.scene?.tokens ?? []) {
+      if (token.actorLink) continue;
+      const effect = token.actor?.effects.get(effectId);
+      if (effect) matches.add(effect);
     }
   }
-  for (const token of canvas?.scene?.tokens ?? []) {
-    if (token.actorLink) continue;
-    const effect = token.actor?.effects.get(effectId);
-    if (effect) return effect;
-  }
-  return null;
+  return matches.size === 1 ? ([...matches][0] ?? null) : null;
 }
 
 function wrapRegistryRefresh(): void {

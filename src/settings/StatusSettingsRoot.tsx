@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { localize } from "../i18n.js";
 import { resetStatusRows, type StatusRow } from "./status-rows.js";
 import {
@@ -24,6 +24,11 @@ export interface StatusSettingsProps {
 export function StatusSettingsRoot({ initialRows, durationOptions, onSave }: StatusSettingsProps) {
   const [rows, setRows] = useState(initialRows);
   const [saving, setSaving] = useState(false);
+
+  // New rows arrive when the setting changed elsewhere; show them instead of saving over that change.
+  useEffect(() => {
+    setRows(initialRows);
+  }, [initialRows]);
 
   const updateRow = (id: string, change: Partial<Pick<StatusRow, "visible" | "duration">>) => {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...change } : row)));

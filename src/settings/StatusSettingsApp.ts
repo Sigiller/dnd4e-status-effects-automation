@@ -1,7 +1,8 @@
 import { localize } from "../i18n.js";
-import { getStatusOptions, setStatusOptions } from "../status-options.js";
+import { getStatusOptions, onStatusOptionsChange, setStatusOptions } from "../status-options.js";
 import { statusEffects } from "../types/dnd4e.js";
-import { mountStatusSettings, unmountStatusSettings } from "./mount.js";
+import { createRoot, type Root } from "react-dom/client";
+import { renderStatusSettings } from "./mount.js";
 import { NONE, buildStatusRows, rowsToStatusOptions } from "./status-rows.js";
 import type { DurationOption } from "./StatusSettingsRoot.js";
 
@@ -43,12 +44,25 @@ export class StatusSettingsApp extends ApplicationV2 {
     content.replaceChildren(result);
   }
 
+  /** This window's own React root; a second window (same id) must not share or unmount it. */
+  #reactRoot: Root | null = null;
+
+  /** Removes the listener re-rendering the form when the setting changes elsewhere. */
+  #stopListening: (() => void) | null = null;
+
   protected override async _onRender(context: object, options: unknown): Promise<void> {
     // @ts-expect-error ApplicationV2._onRender accepts DeepPartial render options at runtime.
     await super._onRender(context, options);
-    const root = this.element?.querySelector(`.${ROOT_CLASS}`);
-    if (!(root instanceof HTMLElement)) return;
-    mountStatusSettings(root, {
+    const host = this.element?.querySelector(`.${ROOT_CLASS}`);
+    if (!(host instanceof HTMLElement)) return;
+    this.#reactRoot ??= createRoot(host);
+    this.#stopListening ??= onStatusOptionsChange(() => this.#renderForm());
+    this.#renderForm();
+  }
+
+  #renderForm(): void {
+    if (!this.#reactRoot) return;
+    renderStatusSettings(this.#reactRoot, {
       initialRows: buildStatusRows(statusEffects(), getStatusOptions(), localize, (a, b) =>
         a.localeCompare(b, game.i18n?.lang)
       ),
@@ -61,7 +75,10 @@ export class StatusSettingsApp extends ApplicationV2 {
   }
 
   protected override async _onClose(options: unknown): Promise<void> {
-    unmountStatusSettings();
+    this.#stopListening?.();
+    this.#stopListening = null;
+    this.#reactRoot?.unmount();
+    this.#reactRoot = null;
     // @ts-expect-error ApplicationV2._onClose accepts DeepPartial render options at runtime.
     await super._onClose(options);
   }

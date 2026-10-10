@@ -178,6 +178,28 @@ Powers copied from campaign actors onto throwaway NPC A (unlinked token): Eldrit
 - The Compendium "Grab" powers (`dnd-4e-compendium.module-core-powers` and the copies on the PCs) have no effects, so Grabbed is never applied automatically from them. The system's own `dnd4e.example_powers` Grab has one, but that pack is empty in this world.
 - Test-environment caveat: core stamps new effects with `game.combat` (the viewed combat). While a non-active test combat is viewed, creating an effect briefly switches the view back to the active combat, so a second effect created right after can be anchored to the active combat. Real play (running combat = active combat) isn't affected. Tests must re-view the test combat before each application.
 
+### K-h. Re-run after the code-review fixes — 2026-10-10 (14/14 passed)
+A single combat with A (30), B (20), C (10), plus F (15) joining during A's turn and D (25) and E (5) joining during B's turn. Effects were applied through the HUD palette, with the inactive test combat re-viewed before each application.
+
+| Step | Removed (all as expected) | Checks |
+|---|---|---|
+| Combat start | A: Cover | K24 |
+| End A R1 → start B R1 | B: Grabbed, Slowed, Partial Concealment; F: Surprised | K8, K5, K25, K34 (new: End of Current Turn on a creature that joined during the user's turn) |
+| End B R1 → start F R1 | B: Blinded, Weakened (save 8 vs DC 1), Insubstantial; Dazed kept (19 vs DC 30) | K4, K3, K2, K23 |
+| End F R1 → start C R1 | – | – |
+| End C R1 → start E R1 | C: Grabbed, Hidden, Superior Cover | K15, K26, K27 |
+| End E R1 → start A R2 | E: Blinded; A: Slowed; B: Restrained | K29, K17, K7 |
+| End A R2 → start D R2 | A: Blinded; B: Immobilized | K16, K6 |
+| End D R2 → start B R2 | D: Blinded | K28 |
+| End B R2 → start F R2 | – (Dazed save failed again) | K2 |
+| End F R2 → start C R2 | C: Slowed, Restrained; A: Restrained | K12, K14, K19 |
+| End C R2 → start E R2 | C: Blinded, Immobilized; A: Immobilized | K11, K13, K18 |
+| Combat end | B: Granting Adv. | K9 |
+| Short rest (B) | – | K20 |
+| Extended rest (B) | B: Curse; Dazed and Deafened remain | K10, K21, K1 |
+
+All saves rolled automatically (NPC), with no dialog.
+
 ## Results — 2026-10-10 (Foundry 14.367, dnd4e 0.9.2, browser run as GM "Assistant")
 
 Run on the "Testing Ground" scene with throwaway NPCs (L1 tier 1, L12 tier 2) in a separate combat. All test actors, tokens, combat and chat messages were deleted afterwards. The original combat was left as found.
