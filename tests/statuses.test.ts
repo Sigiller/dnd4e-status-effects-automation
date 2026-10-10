@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
-import { NO_DURATION_STATUSES, NUMERIC_STATUS_DATA, STATE_STATUSES } from "../src/config.js";
+import { NO_DURATION_STATUSES, STATE_STATUSES } from "../src/config.js";
+import { VALUED_STATUSES } from "../src/values.js";
 import {
   buildHudEffectData,
   hydrateStatusEffects,
@@ -53,7 +54,7 @@ beforeEach(() => {
     applications: {
       apps: {
         CustomStatusConfig: {
-          LEGACY_STATUSES: Object.fromEntries(Object.keys(NUMERIC_STATUS_DATA).map((id) => [id, legacy(id)])),
+          LEGACY_STATUSES: Object.fromEntries(Object.keys(VALUED_STATUSES).map((id) => [id, legacy(id)])),
         },
       },
     },
@@ -123,7 +124,7 @@ describe("resolveDurationType", () => {
 describe("registerMissingNumericStatuses", () => {
   it("adds every numeric status from the system's legacy definitions", () => {
     registerMissingNumericStatuses();
-    for (const id of Object.keys(NUMERIC_STATUS_DATA)) {
+    for (const id of Object.keys(VALUED_STATUSES)) {
       assert.equal(status(id).img, legacy(id).img);
       assert.equal(config.DND4E.statusEffect[id]?.name, legacy(id).name);
     }
@@ -139,19 +140,26 @@ describe("registerMissingNumericStatuses", () => {
 });
 
 describe("hydrateStatusEffects", () => {
-  it("attaches default changes and dots to numeric statuses", () => {
+  it("attaches changes and dots at the built-in start values", () => {
     registerMissingNumericStatuses();
     hydrateStatusEffects();
     assert.deepEqual(
       status("attack_down").system?.changes?.map((change) => [change.key, change.value]),
-      [["system.modifiers.attack.untyped", "-2"]]
+      [["system.modifiers.attack.untyped", "-1"]]
     );
     assert.deepEqual(
       status("defUp").system?.changes?.map((change) => [change.key, change.value]),
-      [["system.modifiers.defences.untyped", "2"]]
+      [["system.modifiers.defences.untyped", "1"]]
     );
-    assert.deepEqual(status("ongoing_1").system?.dots, [{ amount: "5*@tier", types: [] }]);
+    assert.deepEqual(status("ongoing_1").system?.dots, [{ amount: "5", types: [] }]);
     assert.deepEqual(status("regen").system?.dots, [{ amount: "5", types: ["healing"] }]);
+  });
+
+  it("uses configured start values", () => {
+    registerMissingNumericStatuses();
+    hydrateStatusEffects({ attack_down: { start: 3 }, ongoing_2: { start: 10 } });
+    assert.equal(status("attack_down").system?.changes?.[0]?.value, "-3");
+    assert.deepEqual(status("ongoing_2").system?.dots, [{ amount: "10", types: [] }]);
   });
 
   it("does not give statuses a duration", () => {
@@ -166,7 +174,8 @@ describe("buildHudEffectData", () => {
   const actor = { uuid: "Actor.target" } as unknown as Actor.Implementation;
 
   interface EffectData {
-    system: { durationType?: string };
+    name: string;
+    system: { durationType?: string; changes?: { value: string }[]; dots?: { amount: string }[] };
     origin?: string;
     flags?: { core: { overlay: boolean } };
   }
@@ -176,6 +185,7 @@ describe("buildHudEffectData", () => {
       fromStatusEffect(statusId: string) {
         const data: Record<string, unknown> = { name: statusId, statuses: [statusId], system: {} };
         return Promise.resolve({
+          name: statusId,
           updateSource(updates: Record<string, unknown>) {
             for (const [path, value] of Object.entries(updates)) {
               const keys = path.split(".");
@@ -216,9 +226,24 @@ describe("buildHudEffectData", () => {
     assert.equal(data.origin, "Actor.target");
   });
 
-  it("marks right-click applications as overlays", async () => {
+  it("marks overlay applications", async () => {
     const data = (await buildHudEffectData(actor, "stunned", "default", true)) as EffectData;
     assert.equal(data.flags?.core.overlay, true);
+  });
+
+  it("gives valued statuses their start value, name and flag", async () => {
+    const data = (await buildHudEffectData(actor, "attack_down", "default", false, {}, { attack_down: { start: 2 } })) as EffectData & {
+      flags: Record<string, { value?: number }>;
+    };
+    assert.equal(data.name, "attack_down \u22122");
+    assert.equal(data.system.changes?.[0]?.value, "-2");
+    assert.equal(data.flags["dnd4e-status-effects-automation"]?.value, 2);
+  });
+
+  it("leaves statuses without a value unchanged", async () => {
+    const data = (await buildHudEffectData(actor, "dazed", "default", false)) as EffectData;
+    assert.equal(data.name, "dazed");
+    assert.equal(data.system.changes, undefined);
   });
 
   it("uses the configured per-status default", async () => {

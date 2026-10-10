@@ -1,4 +1,4 @@
-import styled, { css } from "styled-components";
+import styled, { createGlobalStyle, css } from "styled-components";
 
 /**
  * Both controls are direct grid items of core's `#token-hud .status-effects` palette (their React hosts use
@@ -89,5 +89,42 @@ export const Grip = styled.div<{ $dragging: boolean }>`
   &:focus-visible {
     opacity: 1;
     color: var(--control-hover-icon-color);
+  }
+`;
+
+/** Value of a valued status, on the bottom-right of its palette icon; clicks pass through to the icon. */
+export const ValueBadge = styled.span`
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  min-width: 12px;
+  padding: 0 2px;
+  border: 1px solid var(--control-active-border-color);
+  border-radius: 6px;
+  background: var(--control-bg-color);
+  color: var(--control-active-icon-color);
+  font-size: 9px;
+  font-weight: bold;
+  line-height: 11px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
+`;
+
+/**
+ * Layout of the plain elements mount.tsx inserts into core's palette: the React hosts take no box of their own, and
+ * a value host is a positioned grid cell holding a status icon and its badge.
+ */
+export const PaletteHostStyles = createGlobalStyle`
+  #token-hud .status-effects .dsea-palette-controls,
+  #token-hud .status-effects .dsea-palette-grip {
+    display: contents;
+  }
+
+  #token-hud .status-effects .dsea-value-host {
+    position: relative;
+    display: block;
+    width: var(--effect-size);
+    height: var(--effect-size);
   }
 `;

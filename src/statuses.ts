@@ -2,12 +2,12 @@ import {
   DEFAULT_DURATION,
   DEFAULT_DURATIONS,
   NO_DURATION_STATUSES,
-  NUMERIC_STATUS_DATA,
   STATE_STATUSES,
   USER_TURN_DURATIONS,
 } from "./config.js";
 import { MODULE_ID } from "./constants.js";
 import { statusEffects } from "./types/dnd4e.js";
+import { VALUED_STATUSES, valueEffectUpdate, valueSettings, valueSystemData, type ValueOverrides } from "./values.js";
 
 /** Status id → "none" or a CONFIG.DND4E.durationType key, from the module settings. */
 export type DurationOverrides = Readonly<Record<string, string>>;
@@ -20,7 +20,7 @@ export type DurationOverrides = Readonly<Record<string, string>>;
 export function registerMissingNumericStatuses(): void {
   const statuses = statusEffects();
   const legacy = dnd4e.applications.apps.CustomStatusConfig?.LEGACY_STATUSES ?? {};
-  for (const id of Object.keys(NUMERIC_STATUS_DATA)) {
+  for (const id of Object.keys(VALUED_STATUSES)) {
     if (statuses[id]) continue;
     const definition = legacy[id];
     if (!definition) {
@@ -34,15 +34,17 @@ export function registerMissingNumericStatuses(): void {
 }
 
 /**
- * Attach default automation data to the numeric statuses, so every effect created from them
+ * Attach automation data at the start value to the valued statuses, so every effect created from them
  * (Token HUD, macros, other modules) carries the system data the dnd4e system automates.
+ * Called again when the configured start values become available or change.
  */
-export function hydrateStatusEffects(): void {
+export function hydrateStatusEffects(valueOverrides: ValueOverrides = {}): void {
   const statuses = statusEffects();
-  for (const [id, data] of Object.entries(NUMERIC_STATUS_DATA)) {
+  for (const id of Object.keys(VALUED_STATUSES)) {
     const status = statuses[id];
-    if (!status) continue;
-    status.system = foundry.utils.mergeObject(status.system ?? {}, foundry.utils.deepClone(data));
+    const settings = valueSettings(id, valueOverrides);
+    if (!status || !settings) continue;
+    status.system = foundry.utils.mergeObject(status.system ?? {}, valueSystemData(id, settings.start));
   }
 }
 
@@ -94,7 +96,8 @@ export async function buildHudEffectData(
   statusId: string,
   durationChoice: string,
   overlay: boolean,
-  durationOverrides: DurationOverrides = {}
+  durationOverrides: DurationOverrides = {},
+  valueOverrides: ValueOverrides = {}
 ): Promise<object> {
   const ActiveEffectClass = getDocumentClass("ActiveEffect");
   const effect = await ActiveEffectClass.fromStatusEffect(statusId, { parent: actor });
@@ -108,6 +111,8 @@ export async function buildHudEffectData(
     updates.origin = currentActor?.uuid ?? actor.uuid;
   }
   if (overlay) updates["flags.core.overlay"] = true;
+  const settings = valueSettings(statusId, valueOverrides);
+  if (settings) Object.assign(updates, valueEffectUpdate(statusId, settings.start, effect.name));
   effect.updateSource(updates);
   return effect.toObject();
 }

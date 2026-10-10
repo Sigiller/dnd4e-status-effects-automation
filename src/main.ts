@@ -4,7 +4,7 @@ import { registerPaletteSettings } from "./hud/palette-columns.js";
 import { createStatusDurationTokenHUD } from "./hud/StatusDurationTokenHUD.js";
 import { registerSaveAutomation } from "./saves.js";
 import { StatusSettingsApp } from "./settings/StatusSettingsApp.js";
-import { registerStatusOptions } from "./status-options.js";
+import { getStatusOptions, onStatusOptionsChange, registerStatusOptions } from "./status-options.js";
 import { hydrateStatusEffects, registerMissingNumericStatuses } from "./statuses.js";
 
 // Runs after the dnd4e system's init hook, which builds CONFIG.statusEffects synchronously.
@@ -20,4 +20,11 @@ Hooks.once("init", () => {
   registerSaveAutomation();
   registerCombatAnchoring();
   CONFIG.Token.hudClass = createStatusDurationTokenHUD(CONFIG.Token.hudClass);
+});
+
+// Configured start values are world settings, available from ready; keep CONFIG (used by macros) in sync.
+Hooks.once("ready", () => {
+  if (game.system?.id !== "dnd4e") return;
+  hydrateStatusEffects(getStatusOptions().values);
+  onStatusOptionsChange(() => hydrateStatusEffects(getStatusOptions().values));
 });

@@ -25,7 +25,7 @@ export const SettingsForm = styled.form`
 
 const rowGrid = css`
   display: grid;
-  grid-template-columns: 28px 1fr 88px 200px;
+  grid-template-columns: 28px 1fr 72px 190px 56px 56px;
   align-items: center;
   gap: 0.5rem;
 `;
@@ -87,4 +87,9 @@ export const DurationCell = styled.span`
     opacity: ${({ theme }) => theme.disabledOpacity};
     pointer-events: none;
   }
+`;
+
+export const ValueInput = styled.input`
+  width: 100%;
+  text-align: center;
 `;

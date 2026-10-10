@@ -200,6 +200,27 @@ A single combat with A (30), B (20), C (10), plus F (15) joining during A's turn
 
 All saves rolled automatically (NPC), with no dialog.
 
+## L. Status values and the click model (2026-10-10)
+Valued statuses: Attack Up/Down, Defense Up/Down (built-in start 1, step 1), Ongoing Effect 1–3 (start 5, step 5), Regeneration (start 5, step 1). Tested with real mouse clicks on a throwaway unlinked NPC.
+
+| # | Check | Result |
+|---|---|---|
+| L1 | Left-click Attack Down adds it at −1: badge "−1", name/tooltip "Attack Down −1", attack modifier −1 | [x] |
+| L2 | Left-click again → −2 (attack −2); right-click → −1 | [x] |
+| L3 | Right-click at −1 removes the status (attack back to 0) | [x] |
+| L4 | Ongoing Effect (1): 5 → 10 → 5 (badge, name and dot amount follow); in combat, 10 ongoing damage at the start of the creature's turn | [x] |
+| L5 | Regeneration: 5 → 6 (+1 step); heals 6 at the start of the creature's turn | [x] |
+| L6 | Non-valued status (Dazed): left adds it, a second left does nothing, right removes it | [x] |
+| L7 | Shift+left adds Stunned as an overlay; Shift+left again turns the overlay off and keeps the status | [x] |
+| L8 | Settings: Attack Down start 2 / step 2 is stored as `{values: {attack_down: {start: 2, step: 2}}}`; a macro toggle gives −2; the HUD starts at −2 and steps to −4; Reset to Defaults shows 1/1; the world setting was restored afterwards (CONFIG re-hydrated back to −1) | [x] |
+| L9 | Raising a value keeps the duration and anchor: Attack Down −4 (End of Target's Next Turn, set before combat, raised twice) ended at the end of the target's first turn | [x] |
+| L10 | Badges don't block clicks; the badge and tooltip update after each value change | [x] |
+| L11 | Regression: K-h duration suite re-run with the new click handler: 14/14 | [x] |
+
+Notes:
+- Foundry's tooltip keeps the text it had when it opened; hover off and on to see an updated value.
+- Test-helper pitfall: icons scrolled to the top of the palette sit under the pinned duration row; clicks there hit duration buttons. Centre the icon before clicking.
+
 ## Results — 2026-10-10 (Foundry 14.367, dnd4e 0.9.2, browser run as GM "Assistant")
 
 Run on the "Testing Ground" scene with throwaway NPCs (L1 tier 1, L12 tier 2) in a separate combat. All test actors, tokens, combat and chat messages were deleted afterwards. The original combat was left as found.

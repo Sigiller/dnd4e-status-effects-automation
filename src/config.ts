@@ -1,34 +1,3 @@
-import type { StatusChange, StatusDot } from "./types/dnd4e.js";
-
-export interface NumericStatusData {
-  changes?: StatusChange[];
-  dots?: StatusDot[];
-}
-
-function change(key: string, value: string): StatusChange {
-  return { key, type: "add", value, phase: "initial", priority: null };
-}
-
-/**
- * Default automation data for statuses that carry a numeric value.
- * Merged into the matching CONFIG.statusEffects entries as `system` data, so the dnd4e
- * system processes them like any power-applied effect (changes → actor modifiers,
- * dots → Actor4e#autoDoTsSocket at the start of the creature's turn).
- * Values are formulas resolved against the affected actor's roll data.
- */
-export const NUMERIC_STATUS_DATA: Record<string, NumericStatusData> = {
-  attack_up: { changes: [change("system.modifiers.attack.untyped", "2")] },
-  attack_down: { changes: [change("system.modifiers.attack.untyped", "-2")] },
-  defUp: { changes: [change("system.modifiers.defences.untyped", "2")] },
-  defDown: { changes: [change("system.modifiers.defences.untyped", "-2")] },
-  // Empty damage types are treated as untyped ("physical") ongoing damage by the system.
-  ongoing_1: { dots: [{ amount: "5*@tier", types: [] }] },
-  ongoing_2: { dots: [{ amount: "5*@tier", types: [] }] },
-  ongoing_3: { dots: [{ amount: "5*@tier", types: [] }] },
-  // The "healing" dot type is how the system models regeneration.
-  regen: { dots: [{ amount: "5", types: ["healing"] }] },
-};
-
 /**
  * Statuses that never take a duration, whatever is selected in the HUD: they end through
  * game state or an action (standing up, healing, stopping a movement mode), not through time or saves.

@@ -49,3 +49,24 @@ describe("defaultDuration with settings", () => {
 		assert.equal(resolveDurationType("dazed", "none", overrides), "");
 	});
 });
+
+describe("normalizeStatusOptions values", () => {
+  it("keeps positive integer start/step for valued statuses only", () => {
+    const { values } = normalizeStatusOptions(
+      {
+        values: {
+          attack_down: { start: 2, step: 0 },
+          ongoing_1: { start: 10, step: 5 },
+          regen: { start: -1, step: 1.5 },
+          dazed: { start: 3 },
+        },
+      },
+      DURATION_TYPES
+    );
+    assert.deepEqual(values, { attack_down: { start: 2 }, ongoing_1: { start: 10, step: 5 } });
+  });
+
+  it("returns empty values for settings saved before values existed", () => {
+    assert.deepEqual(normalizeStatusOptions({ hidden: [], durations: {} }, DURATION_TYPES).values, {});
+  });
+});

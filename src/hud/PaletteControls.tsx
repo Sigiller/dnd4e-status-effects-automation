@@ -10,7 +10,7 @@ import {
   getPaletteColumns,
   setPaletteColumns,
 } from "./palette-columns.js";
-import { DurationBadge, DurationButton, DurationRow, Grip, GripRow } from "./PaletteControls.styles.js";
+import { DurationBadge, DurationButton, DurationRow, Grip, GripRow, PaletteHostStyles, ValueBadge } from "./PaletteControls.styles.js";
 
 export interface PaletteControlsProps {
   /** Core's `.palette.status-effects` element. */
@@ -19,6 +19,8 @@ export interface PaletteControlsProps {
   gripHost: HTMLElement;
   selectedDuration: string;
   onSelectDuration: (durationId: string) => void;
+  /** Value badges to render on status icons (each host wraps one icon). */
+  badges: { statusId: string; host: HTMLElement; text: string }[];
 }
 
 interface DurationOption {
@@ -146,11 +148,13 @@ function ResizeGrip({ palette }: { palette: HTMLElement }) {
   );
 }
 
-export function PaletteControls({ palette, gripHost, selectedDuration, onSelectDuration }: PaletteControlsProps) {
+export function PaletteControls({ palette, gripHost, selectedDuration, onSelectDuration, badges }: PaletteControlsProps) {
   return (
     <>
+      <PaletteHostStyles />
       <DurationPicker selected={selectedDuration} onSelect={onSelectDuration} />
       {createPortal(<ResizeGrip palette={palette} />, gripHost)}
+      {badges.map(({ statusId, host, text }) => createPortal(<ValueBadge aria-hidden>{text}</ValueBadge>, host, statusId))}
     </>
   );
 }

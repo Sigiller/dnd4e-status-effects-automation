@@ -10,5 +10,8 @@
   "DSEA.Settings.DefaultDuration": "Default duration",
   "DSEA.Settings.Locked": "This status never has a duration",
   "DSEA.Settings.Reset": "Reset to Defaults",
-  "DSEA.Settings.Save": "Save Changes"
+  "DSEA.Settings.Save": "Save Changes",
+  "DSEA.Settings.StartValue": "Start",
+  "DSEA.Settings.Step": "Step",
+  "DSEA.Settings.ClickHint": "In the palette: left-click adds a status or raises its value by the step, right-click lowers the value (removing the status at 0) or removes a status without a value, Shift+left-click toggles the overlay."
 }

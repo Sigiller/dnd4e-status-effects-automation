@@ -1,10 +1,12 @@
 import { MODULE_ID, STATUS_OPTIONS_MENU, STATUS_OPTIONS_SETTING } from "./constants.js";
+import { VALUED_STATUSES, type ValueSettings } from "./values.js";
 
 /** Stored form of the status options world setting. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- fvtt-types only accepts index-signature-compatible types (a type alias, not an interface) for `type: Object` settings.
 export type StatusOptionsSource = {
   hidden: string[];
   durations: Record<string, string>;
+  values?: Record<string, Partial<ValueSettings>>;
 };
 
 export interface StatusOptions {
@@ -12,10 +14,17 @@ export interface StatusOptions {
   hidden: Set<string>;
   /** Status id → "none" or a CONFIG.DND4E.durationType key. */
   durations: Record<string, string>;
+  /** Valued status id → start value and/or step replacing the built-in ones. */
+  values: Record<string, Partial<ValueSettings>>;
+}
+
+function positiveInteger(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
 }
 
 /**
- * Clean stored status options: drop malformed entries and durations the system doesn't define.
+ * Clean stored status options: drop malformed entries, durations the system doesn't define, and start/step
+ * values that aren't positive integers for a valued status.
  * @param raw The stored setting value
  * @param durationTypes Valid CONFIG.DND4E.durationType keys
  */
@@ -32,7 +41,20 @@ export function normalizeStatusOptions(raw: unknown, durationTypes: Iterable<str
       if (typeof duration === "string" && valid.has(duration)) durations[id] = duration;
     }
   }
-  return { hidden, durations };
+  const values: Record<string, Partial<ValueSettings>> = {};
+  if (typeof source.values === "object" && source.values !== null) {
+    for (const [id, entry] of Object.entries(source.values as Record<string, unknown>)) {
+      if (!VALUED_STATUSES[id] || typeof entry !== "object" || entry === null) continue;
+      const { start, step } = entry as Record<string, unknown>;
+      const cleaned: Partial<ValueSettings> = {};
+      const validStart = positiveInteger(start);
+      const validStep = positiveInteger(step);
+      if (validStart !== undefined) cleaned.start = validStart;
+      if (validStep !== undefined) cleaned.step = validStep;
+      if (Object.keys(cleaned).length) values[id] = cleaned;
+    }
+  }
+  return { hidden, durations, values };
 }
 
 /** The GM's per-status options for the current world. */
@@ -43,8 +65,8 @@ export function getStatusOptions(): StatusOptions {
   );
 }
 
-export async function setStatusOptions({ hidden, durations }: StatusOptions): Promise<void> {
-  await game.settings?.set(MODULE_ID, STATUS_OPTIONS_SETTING, { hidden: [...hidden], durations });
+export async function setStatusOptions({ hidden, durations, values }: StatusOptions): Promise<void> {
+  await game.settings?.set(MODULE_ID, STATUS_OPTIONS_SETTING, { hidden: [...hidden], durations, values });
 }
 
 const changeListeners = new Set<() => void>();

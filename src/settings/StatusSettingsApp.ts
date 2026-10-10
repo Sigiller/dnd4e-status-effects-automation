@@ -30,7 +30,7 @@ export class StatusSettingsApp extends ApplicationV2 {
       contentClasses: ["standard-form"],
       resizable: true,
     },
-    position: { width: 560, height: 680 },
+    position: { width: 700, height: 680 },
   };
 
   protected override async _renderHTML(_context: object, _options: unknown): Promise<HTMLElement> {

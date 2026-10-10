@@ -2,7 +2,7 @@
   "id": "dnd4e-status-effects-automation",
   "title": "D&D 4e Status Effects Automation",
   "description": "Applies dnd4e effect automation (durations, attack/defence modifiers, ongoing damage, regeneration) to statuses assigned from the Token HUD.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "authors": [
     {
       "name": "Sigiller",
